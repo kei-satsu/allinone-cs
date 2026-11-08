@@ -1,0 +1,5 @@
+Cloud Build
+npx eas-cli@latest build --profile preview --platform android
+
+OTA Update
+npx eas-cli@latest update --channel preview --environment preview --message "ပြောင်းလဲမှုအကျဉ်း"

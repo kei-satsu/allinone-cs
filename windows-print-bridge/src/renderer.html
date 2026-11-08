@@ -1,0 +1,89 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>AIO Windows Print Bridge</title>
+    <style>
+      body { margin: 0; background: #090b11; color: #f9fafb; font: 15px system-ui, sans-serif; }
+      .page { max-width: 620px; margin: auto; padding: 28px; }
+      .badge { color: #8fc2ff; font-weight: 800; letter-spacing: 1px; font-size: 11px; }
+      .card { margin-top: 16px; padding: 20px; border: 1px solid #303848; border-radius: 22px; background: #171b25; }
+      .qr { display: block; width: 280px; height: 280px; margin: 18px auto; background: #fff; padding: 10px; border-radius: 15px; }
+      .address { font-family: ui-monospace, monospace; color: #fcd34d; word-break: break-all; }
+      .button { padding: 12px 16px; border: 0; border-radius: 16px; background: #f59e0b; color: #19150e; font-weight: 800; cursor: pointer; }
+      .printer { padding: 12px 0; border-top: 1px solid #303848; }
+      .muted { color: #aab1c2; line-height: 1.5; }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <div class="badge">ALL-IN-ONE CS · LOCAL NETWORK</div>
+      <h1>Windows Print Bridge</h1>
+      <p class="muted">Keep this app open. Scan the QR code in All-in-One CS before selecting a printer and paper size.</p>
+      <section class="card">
+        <img id="qr" class="qr" alt="AIO Print Bridge pairing QR">
+        <div class="address" id="address"></div>
+        <p class="muted" id="device"></p>
+        <button class="button" id="rotate" type="button">Generate new QR code</button>
+      </section>
+      <section class="card">
+        <h2>Connected Windows printers</h2>
+        <div id="printers" class="muted">Loading printer drivers…</div>
+      </section>
+    </main>
+    <script>
+      const byId = (id) => document.getElementById(id);
+
+      function renderState(state) {
+        byId('qr').src = state.qrDataUrl;
+        byId('address').textContent = state.address;
+        byId('device').textContent = state.deviceName;
+      }
+
+      function renderPrinters(printers) {
+        const container = byId('printers');
+        container.replaceChildren();
+        if (!printers.length) {
+          container.textContent = 'No Windows printer driver was found.';
+          return;
+        }
+
+        for (const printer of printers) {
+          const row = document.createElement('div');
+          row.className = 'printer';
+          const title = document.createElement('b');
+          title.textContent = `${printer.name}${printer.isDefault ? ' · Default' : ''}`;
+          const details = document.createElement('div');
+          details.className = 'muted';
+          details.textContent = printer.papers.map((paper) => paper.name).join(', ');
+          row.append(title, details);
+          container.append(row);
+        }
+      }
+
+      async function load() {
+        const [state, printers] = await Promise.all([
+          window.printBridge.state(),
+          window.printBridge.printers(),
+        ]);
+        renderState(state);
+        renderPrinters(printers);
+      }
+
+      byId('rotate').addEventListener('click', async () => {
+        byId('rotate').disabled = true;
+        try {
+          renderState(await window.printBridge.rotate());
+        } catch (error) {
+          byId('printers').textContent = error instanceof Error ? error.message : 'Could not rotate the pairing QR.';
+        } finally {
+          byId('rotate').disabled = false;
+        }
+      });
+
+      load().catch((error) => {
+        byId('printers').textContent = error instanceof Error ? error.message : 'Could not load Windows printers.';
+      });
+    </script>
+  </body>
+</html>

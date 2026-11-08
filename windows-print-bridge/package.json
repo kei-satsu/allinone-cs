@@ -1,0 +1,46 @@
+{
+  "name": "aio-windows-print-bridge",
+  "version": "1.0.1",
+  "private": true,
+  "productName": "AIO Windows Print Bridge",
+  "description": "LAN-only QR-paired printer bridge for AIO Intake vouchers.",
+  "main": "src/main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/*-node.cjs",
+    "dist:win": "electron-builder --win nsis --x64"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "electron": "^43.4.1",
+    "electron-builder": "^26.15.3"
+  },
+  "build": {
+    "appId": "com.allinoneexpress.printbridge",
+    "productName": "AIO Windows Print Bridge",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "src/**/*",
+      "common/**/*",
+      "resources/**/*",
+      "package.json",
+      "README.md"
+    ],
+    "win": {
+      "target": ["nsis"],
+      "artifactName": "AIO-Windows-Print-Bridge-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": "always",
+      "createStartMenuShortcut": true,
+      "runAfterFinish": true
+    }
+  }
+}
